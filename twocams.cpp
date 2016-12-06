@@ -53,7 +53,7 @@ int main(int, char**)
           drawChessboardCorners( frame0, boardSize, Mat(foundBoardCorners), found );
 
           // Load camera parameters
-          FileStorage fs("camera_data_1.xml", FileStorage::READ);
+          FileStorage fs("camera_data_0.xml", FileStorage::READ);
           Mat cameraMatrix, distCoeffs;
           fs["camera_matrix"] >> cameraMatrix;
           fs["distortion_coefficients"] >> distCoeffs;
@@ -78,7 +78,7 @@ int main(int, char**)
           drawChessboardCorners( frame1, boardSize, Mat(foundBoardCorners), found );
 
           // Load camera parameters
-          FileStorage fs("camera_data_0.xml", FileStorage::READ);
+          FileStorage fs("camera_data_1.xml", FileStorage::READ);
           Mat cameraMatrix, distCoeffs;
           fs["camera_matrix"] >> cameraMatrix;
           fs["distortion_coefficients"] >> distCoeffs;
