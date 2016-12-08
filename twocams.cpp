@@ -145,11 +145,10 @@ int main(int, char**)
           calibrated0 = true;
 
           cout << "Got cam0 projection matrix!" << endl;
-          cout << "Trying to get cam1 pos and rot" << endl;
         }
       }
 
-      if (calibrated0 && !calibrated1) {
+      if (start && !calibrated1) {
         vector<Point2f> foundBoardCorners;
         bool found = findChessboardCorners( frame1, boardSize, foundBoardCorners, chessBoardFlags);
 
@@ -177,17 +176,28 @@ int main(int, char**)
         circle( frame1, cam1point, 3, Scalar(0,255,0), -1, 8, 0 );
       }
 
-      Mat frame0mapped, frame1mapped;
-      remap(frame0, frame0mapped, cam0map1, cam0map2, INTER_LINEAR);
-      remap(frame1, frame1mapped, cam1map1, cam1map2, INTER_LINEAR);
+      //Mat frame0mapped, frame1mapped;
+      //remap(frame0, frame0mapped, cam0map1, cam0map2, INTER_LINEAR);
+      //remap(frame1, frame1mapped, cam1map1, cam1map2, INTER_LINEAR);
 
       imshow("cam0", frame0);
       imshow("cam1", frame1);
 
+      if (start && (!calibrated0 || !calibrated1)) {
+        cout << "Chessboard has not been detected by both cameras! Press SPACE to try again!" << endl;
+      }
+      if (start && calibrated0 && calibrated1) {
+        cout << "READY!" << endl;
+      }
+      start = false;
+
       char key = (char)waitKey(30);
       if( key  == 32 ) {
-        if (!start) start = true;
-        if (start && cam0point.x && cam1point.x) {
+        if (!start) {
+          start = true;
+          cout << "Try detecting" << endl;
+        }
+        if (calibrated0 && calibrated1 && cam0point.x && cam1point.x) {
           doTriangulation(proj0, proj1, cam0point, cam1point);
         }
       } else if (key > 0) {
