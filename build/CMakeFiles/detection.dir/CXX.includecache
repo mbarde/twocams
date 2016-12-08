@@ -6,6 +6,10 @@
 
 #IncludeRegexTransform: 
 
+/home/mbarde/projects/twocams/detection.cpp
+detection.h
+/home/mbarde/projects/twocams/detection.h
+
 /home/mbarde/projects/twocams/detection.h
 opencv2/imgcodecs.hpp
 /home/mbarde/projects/twocams/opencv2/imgcodecs.hpp
@@ -15,12 +19,6 @@ opencv2/imgproc/imgproc.hpp
 /home/mbarde/projects/twocams/opencv2/imgproc/imgproc.hpp
 iostream
 -
-
-/home/mbarde/projects/twocams/twocams.cpp
-opencv2/opencv.hpp
-/home/mbarde/projects/twocams/opencv2/opencv.hpp
-detection.h
-/home/mbarde/projects/twocams/detection.h
 
 /usr/local/include/opencv/cxcore.h
 opencv2/core/core_c.h

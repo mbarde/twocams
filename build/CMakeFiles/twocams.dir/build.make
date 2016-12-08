@@ -98,6 +98,7 @@ twocams: /usr/local/lib/libopencv_shape.so.3.1.0
 twocams: /usr/local/lib/libopencv_photo.so.3.1.0
 twocams: /usr/local/lib/libopencv_objdetect.so.3.1.0
 twocams: /usr/local/lib/libopencv_calib3d.so.3.1.0
+twocams: libdetection.a
 twocams: /usr/local/lib/libopencv_features2d.so.3.1.0
 twocams: /usr/local/lib/libopencv_ml.so.3.1.0
 twocams: /usr/local/lib/libopencv_highgui.so.3.1.0

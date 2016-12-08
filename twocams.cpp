@@ -1,4 +1,5 @@
 #include "opencv2/opencv.hpp"
+#include "detection.h"
 
 using namespace cv;
 using namespace std;
@@ -193,12 +194,18 @@ int main(int, char**)
 
       char key = (char)waitKey(30);
       if( key  == 32 ) {
-        if (!start) {
+        if (!start && (!calibrated0 || !calibrated1)) {
           start = true;
           cout << "Try detecting" << endl;
         }
-        if (calibrated0 && calibrated1 && cam0point.x && cam1point.x) {
-          doTriangulation(proj0, proj1, cam0point, cam1point);
+        if (calibrated0 && calibrated1) {
+          cout << "Try to find target" << endl;
+          detectBall(frame0, cam0point, 0);
+          detectBall(frame1, cam1point, 1);
+          if (cam0point.x != 0 && cam1point.x != 0) {
+            cout << "FOUND!" << endl;
+            doTriangulation(proj0, proj1, cam0point, cam1point);
+          }
         }
       } else if (key > 0) {
         break;

@@ -1,3 +1,4 @@
 /home/mbarde/projects/twocams/build/CMakeFiles/edit_cache.dir
 /home/mbarde/projects/twocams/build/CMakeFiles/rebuild_cache.dir
 /home/mbarde/projects/twocams/build/CMakeFiles/twocams.dir
+/home/mbarde/projects/twocams/build/CMakeFiles/detection.dir

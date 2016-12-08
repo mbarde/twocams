@@ -182,6 +182,9 @@ OpenCV_LIB_DIR_DBG:PATH=
 //Path where release OpenCV libraries are located
 OpenCV_LIB_DIR_OPT:PATH=
 
+//Dependencies for target
+detection_LIB_DEPENDS:STATIC=
+
 //Value Computed by CMake
 twocams_BINARY_DIR:STATIC=/home/mbarde/projects/twocams/build
 

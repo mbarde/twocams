@@ -123,6 +123,46 @@ twocams/fast:
 	$(MAKE) -f CMakeFiles/twocams.dir/build.make CMakeFiles/twocams.dir/build
 .PHONY : twocams/fast
 
+#=============================================================================
+# Target rules for targets named detection
+
+# Build rule for target.
+detection: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 detection
+.PHONY : detection
+
+# fast build rule for target.
+detection/fast:
+	$(MAKE) -f CMakeFiles/detection.dir/build.make CMakeFiles/detection.dir/build
+.PHONY : detection/fast
+
+detection.o: detection.cpp.o
+
+.PHONY : detection.o
+
+# target to build an object file
+detection.cpp.o:
+	$(MAKE) -f CMakeFiles/detection.dir/build.make CMakeFiles/detection.dir/detection.cpp.o
+.PHONY : detection.cpp.o
+
+detection.i: detection.cpp.i
+
+.PHONY : detection.i
+
+# target to preprocess a source file
+detection.cpp.i:
+	$(MAKE) -f CMakeFiles/detection.dir/build.make CMakeFiles/detection.dir/detection.cpp.i
+.PHONY : detection.cpp.i
+
+detection.s: detection.cpp.s
+
+.PHONY : detection.s
+
+# target to generate assembly for a file
+detection.cpp.s:
+	$(MAKE) -f CMakeFiles/detection.dir/build.make CMakeFiles/detection.dir/detection.cpp.s
+.PHONY : detection.cpp.s
+
 twocams.o: twocams.cpp.o
 
 .PHONY : twocams.o
@@ -159,6 +199,10 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... twocams"
+	@echo "... detection"
+	@echo "... detection.o"
+	@echo "... detection.i"
+	@echo "... detection.s"
 	@echo "... twocams.o"
 	@echo "... twocams.i"
 	@echo "... twocams.s"

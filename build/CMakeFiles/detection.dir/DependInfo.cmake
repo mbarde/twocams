@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/mbarde/projects/twocams/twocams.cpp" "/home/mbarde/projects/twocams/build/CMakeFiles/twocams.dir/twocams.cpp.o"
+  "/home/mbarde/projects/twocams/detection.cpp" "/home/mbarde/projects/twocams/build/CMakeFiles/detection.dir/detection.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
@@ -16,7 +16,6 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
 
 # Targets to which this target links.
 set(CMAKE_TARGET_LINKED_INFO_FILES
-  "/home/mbarde/projects/twocams/build/CMakeFiles/detection.dir/DependInfo.cmake"
   )
 
 # Fortran module output directory.
