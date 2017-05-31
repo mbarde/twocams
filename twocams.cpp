@@ -24,9 +24,7 @@ void createProjectionMatrix(Mat tvec, Mat rvec, Mat cameraMatrix, Mat& proj) {
 /**
 * Does triangulation with one 2D point for each camera
 **/
-void doTriangulation(Mat proj0, Mat proj1, Point2f pt0, Point2f pt1) {
-  cout << "Start triangulation" << endl;
-
+Point3f doTriangulation(Mat proj0, Mat proj1, Point2f pt0, Point2f pt1) {
   vector<Point2f> points0, points1;
   points0.push_back(pt0);
   points1.push_back(pt1);
@@ -40,7 +38,9 @@ void doTriangulation(Mat proj0, Mat proj1, Point2f pt0, Point2f pt1) {
   Mat points3d;
   convertPointsFromHomogeneous(points4d, points3d);
   points3d = points3d/10;
-  cout << points3d << endl;
+
+  Point3f result(points3d.at<float>(0), points3d.at<float>(1), points3d.at<float>(2));
+  return result;
 }
 
 Point2f cam0point;
@@ -63,14 +63,13 @@ void mouseCam1Handler(int event, int x, int y, int flags, void* param)
     }
 }
 
-
 int main(int, char**)
 {
-    VideoCapture cap0(0);
+    VideoCapture cap0(1);
     if(!cap0.isOpened())
         return -1;
 
-    VideoCapture cap1(1);
+    VideoCapture cap1(2);
     if(!cap1.isOpened())
           return -1;
 
@@ -81,6 +80,11 @@ int main(int, char**)
     int mouseParam= CV_EVENT_FLAG_LBUTTON;
     setMouseCallback("cam0",mouseCam0Handler,&mouseParam);
     setMouseCallback("cam1",mouseCam1Handler,&mouseParam);
+
+	 Detection detection(20);
+
+	 bool goalDetectionMode = false;
+	 Point3f lastBallPosition(0, 0, -100);
 
     // Load camera 0 parameters and compute remap
     FileStorage fs("camera_wired.xml", FileStorage::READ);
@@ -98,7 +102,7 @@ int main(int, char**)
               CV_16SC2, cam0map1, cam0map2);
 
     // Load camera 1 parameters and compute remap
-    fs = FileStorage("camera_laptop.xml", FileStorage::READ);
+    fs = FileStorage("camera_wired.xml", FileStorage::READ);
     Mat cameraMatrix1, distCoeffs1;
     fs["camera_matrix"] >> cameraMatrix1;
     fs["distortion_coefficients"] >> distCoeffs1;
@@ -169,6 +173,35 @@ int main(int, char**)
         if(waitKey(30) >= 0) break;
       }
 
+      if (start && (!calibrated0 || !calibrated1)) {
+        cout << "Chessboard has not been detected by both cameras! Press SPACE to try again!" << endl;
+      }
+      if (start && calibrated0 && calibrated1) {
+        cout << "READY!" << endl;
+      }
+      start = false;
+
+		if (goalDetectionMode) {
+			detection.detectionStep(frame0, cam0point);
+			detection.detectionStep(frame1, cam1point);
+
+			if (cam0point.x != 0 && cam1point.x != 0) {
+				Point3f newBallPosition = doTriangulation(proj0, proj1, cam0point, cam1point);
+
+				if (newBallPosition.z > -10) {
+					if (newBallPosition.x > -5 && newBallPosition.x < 25
+						&& newBallPosition.y > -7 && newBallPosition.y < 15) {
+							cout << "GOAAAAAAL: " << newBallPosition.x << " : " << newBallPosition.y << endl;
+					} else {
+						cout << "MISS: " << newBallPosition.x << " : " << newBallPosition.y << endl;
+					}
+					goalDetectionMode = false;
+				} else {
+					lastBallPosition = newBallPosition;
+				}
+			}
+		}
+
       // draw markers
       if (cam0point.x != 0) {
         circle( frame0, cam0point, 3, Scalar(0,255,0), -1, 8, 0 );
@@ -180,35 +213,36 @@ int main(int, char**)
       //Mat frame0mapped, frame1mapped;
       //remap(frame0, frame0mapped, cam0map1, cam0map2, INTER_LINEAR);
       //remap(frame1, frame1mapped, cam1map1, cam1map2, INTER_LINEAR);
+		if (!frame0.empty()) {
+      	imshow("cam0", frame0);
+		}
 
-      imshow("cam0", frame0);
-      imshow("cam1", frame1);
-
-      if (start && (!calibrated0 || !calibrated1)) {
-        cout << "Chessboard has not been detected by both cameras! Press SPACE to try again!" << endl;
-      }
-      if (start && calibrated0 && calibrated1) {
-        cout << "READY!" << endl;
-      }
-      start = false;
+		if (!frame1.empty()) {
+      	imshow("cam1", frame1);
+		}
 
       char key = (char)waitKey(30);
       if( key  == 32 ) {
         if (!start && (!calibrated0 || !calibrated1)) {
-          start = true;
-          cout << "Try detecting" << endl;
+          	start = true;
+          	cout << "Try detecting" << endl;
         }
-        if (calibrated0 && calibrated1) {
-          cout << "Try to find target" << endl;
-          detectBall(frame0, cam0point, 0);
-          detectBall(frame1, cam1point, 1);
-          if (cam0point.x != 0 && cam1point.x != 0) {
-            cout << "FOUND!" << endl;
-            doTriangulation(proj0, proj1, cam0point, cam1point);
-          }
-        }
-      } else if (key > 0) {
-        break;
+        	if (calibrated0 && calibrated1) {
+          	if (cam0point.x != 0 && cam1point.x != 0) {
+				  	cout << "Start triangulation" << endl;
+	            Point3f point = doTriangulation(proj0, proj1, cam0point, cam1point);
+					cout << point << endl;
+          	}
+        	}
+	  	} else if (key == 'g') {
+		  	if (!goalDetectionMode && calibrated0 && calibrated1) {
+			  goalDetectionMode = true;
+			  lastBallPosition.z = -100;
+			  cout << "Goal detection mode started" << endl;
+		  	}
+	  	} else if (key > 0) {
+			cout << key << endl;
+     		break;
       }
 
     } // outer for loop

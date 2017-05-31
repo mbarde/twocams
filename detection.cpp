@@ -1,33 +1,66 @@
 #include "detection.h"
 
-void detectBall(Mat frame, Point2f& center, int mode) {
-    // By convention return x,y=0 if no ball is found
-    center.x = 0;
-    center.y = 0;
+Detection::Detection(int keypointSizeThreshold) {
+	this->keypointSizeThreshold = keypointSizeThreshold;
 
-    Scalar hsv_min;
-    Scalar hsv_max;
-    if (mode == 0) {
-      hsv_min = Scalar(75, 118, 131, 0);
-      hsv_max = Scalar(85, 255, 188, 0);
-    } else {
-      hsv_min = Scalar(44, 102, 56, 0);
-      hsv_max = Scalar(58, 164, 95, 0);
-    }
+	// create Background Subtractor objects
+	//pMOG2 = bgsegm::createBackgroundSubtractorMOG();
+	pMOG2 = createBackgroundSubtractorMOG2();
 
-    Mat hsv_frame, thresholded;
+	// init blob detector
+	// Setup SimpleBlobDetector parameters.
+	SimpleBlobDetector::Params params;
 
-    // Covert color space to HSV as it is much easier to filter colors in the HSV color-space.
-    cvtColor(frame, hsv_frame, CV_BGR2HSV);
-    // Filter out colors which are out of range.
-    inRange(hsv_frame, hsv_min, hsv_max, thresholded);
+	// Fitler white blobs
+	params.filterByColor = 1;
+	params.blobColor = 255;
 
-    // smooth it
-    GaussianBlur( thresholded, thresholded, Size(9, 9), 2, 2 );
+	// Filter by Area
+	params.filterByArea = true;
+	params.minArea = 10;
 
-    Point min_loc, max_loc;
-    double min, max;
-    minMaxLoc(thresholded, &min, &max, &min_loc, &max_loc);
-    center.x = max_loc.x;
-    center.y = max_loc.y;
+	detector = SimpleBlobDetector::create(params);
+}
+
+/**
+* Detect ball in camera frame and write center position to center.
+**/
+void Detection::detectionStep(Mat& frame, Point2f& center) {
+	center.x = 0;
+	center.y = 0;
+
+	// smooth it
+	GaussianBlur(frame, frame, Size(5, 5), 2, 2 );
+
+	//update the background model
+	pMOG2->apply(frame, fgMaskMOG2);
+
+	// smooth it
+	GaussianBlur( fgMaskMOG2, fgMaskMOG2, Size(5, 5), 2, 2 );
+
+	// Detect blobs in fgMaskMOG2
+	std::vector<KeyPoint> keypoints;
+	detector->detect(fgMaskMOG2, keypoints);
+
+	float m_size = 0;
+	int biggest_kp = -1;
+	int countOfKPsBiggerThanThreshold = 0;
+	for (int i = 0; i < keypoints.size(); i++) {
+		// Only work with keypoints of certain size (remove noise)
+		if (keypoints[i].size > keypointSizeThreshold) {
+			countOfKPsBiggerThanThreshold++;
+			if (m_size < keypoints[i].size) {
+				biggest_kp = i;
+				m_size = keypoints[i].size;
+			}
+		}
+	}
+	if (biggest_kp > -1) {
+		int size_int = (int)keypoints[biggest_kp].size;
+		circle(frame, keypoints[biggest_kp].pt ,size_int, Scalar(0,0,255), 3, 8, 0);
+		center.x = keypoints[biggest_kp].pt.x;
+		center.y = keypoints[biggest_kp].pt.y;
+	}
+
+	putText(frame, "KPs : " + SSTR(int(countOfKPsBiggerThanThreshold)), Point(100,50), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(50,170,50), 2);
 }
