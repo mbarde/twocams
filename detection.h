@@ -21,6 +21,7 @@ class BallDetector {
 
 	public:
 		BallDetector(int keypointNoiseThreshold);
+		void clearBackgroundModel();
 		void detectionStep(Mat& frame, Point2f& center);
 };
 

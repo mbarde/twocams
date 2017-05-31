@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<opencv_storage>
+	<cam0_index>1</cam0_index>
+	<cam0_calib_file>"../intrinsics/camera_A.xml"</cam0_calib_file>
+	<cam1_index>2</cam1_index>
+	<cam1_calib_file>"../intrinsics/camera_B.xml"</cam1_calib_file>
+	<goal_width>25</goal_width>
+	<goal_height>18</goal_height>
+	<goal_line_z_coord>-30</goal_line_z_coord>
+	<goal_sequence_count>1</goal_sequence_count>
+	<ball_offset_x>0</ball_offset_x>
+	<ball_offset_y>1</ball_offset_y>
+	<ball_offset_z>0</ball_offset_z>
+</opencv_storage>

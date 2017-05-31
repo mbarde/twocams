@@ -18,6 +18,10 @@ BallDetector::BallDetector(int keypointNoiseThreshold) {
 	detector = SimpleBlobDetector::create(params);
 }
 
+void BallDetector::clearBackgroundModel() {
+	pMOG2 = createBackgroundSubtractorMOG2();
+}
+
 // Detect ball in camera frame and write position to corresponding argument
 void BallDetector::detectionStep(Mat& frame, Point2f& position) {
 	// By default return x,y = 0 if ball is not detected

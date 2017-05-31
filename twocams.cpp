@@ -88,13 +88,43 @@ bool doExtrinsicCalibration(	Size boardSize, int chessBoardFlags, vector<Point3f
   	return false;
 }
 
+struct GoalConfig {
+	float width;
+	float height;
+	float line_z_coord;
+	// How many times a goal must be detected (in a row) before believing it
+	// (to avoid false positives)
+	int sequence_count;
+};
+
 int main(int, char**) {
+	// Load configuration file
+	FileStorage fs("../config.xml", FileStorage::READ);
+	int cam0index, cam1index;
+	string cam0calibFilename, cam1calibFilename;
+	fs["cam0_index"] >> cam0index;
+	fs["cam0_calib_file"] >> cam0calibFilename;
+	fs["cam1_index"] >> cam1index;
+	fs["cam1_calib_file"] >> cam1calibFilename;
+
+	GoalConfig goalConfig;
+	fs["goal_width"] >> goalConfig.width;
+	fs["goal_height"] >> goalConfig.height;
+	fs["goal_line_z_coord"] >> goalConfig.line_z_coord;
+	fs["goal_sequence_count"] >> goalConfig.sequence_count;
+
+	float offX, offY, offZ;
+	fs["ball_offset_x"] >> offX;
+	fs["ball_offset_y"] >> offY;
+	fs["ball_offset_z"] >> offZ;
+	Point3f ballOffset(offX, offY, offZ);
+
 	// Init camera input streams
-	VideoCapture cap0(1);
+	VideoCapture cap0(cam0index);
 	if(!cap0.isOpened())
   		return -1;
 
-	VideoCapture cap1(2);
+	VideoCapture cap1(cam1index);
 	if(!cap1.isOpened())
 		return -1;
 
@@ -110,10 +140,10 @@ int main(int, char**) {
 	// Init BallDetector for automatic goal detection mode
 	BallDetector detector(100);
 	bool goalDetectionMode = false;
-	Point3f lastBallPosition(0, 0, -100);
+	int goalCounter = 0;
 
-	// Load camera 0 parameters and compute remap
-	FileStorage fs("camera_wired.xml", FileStorage::READ);
+	// Load camera 0 intrinsic parameters and compute remap
+	fs = FileStorage(cam0calibFilename, FileStorage::READ);
 	Mat cameraMatrix0, distCoeffs0;
 	float img_width, img_height;
 	fs["camera_matrix"] >> cameraMatrix0;
@@ -127,8 +157,8 @@ int main(int, char**) {
               getOptimalNewCameraMatrix(cameraMatrix0, distCoeffs0, imageSize0, 1, imageSize0, 0), imageSize0,
               CV_16SC2, cam0map1, cam0map2);
 
-	// Load camera 1 parameters and compute remap
-	fs = FileStorage("camera_wired.xml", FileStorage::READ);
+	// Load camera 1 intrinsic parameters and compute remap
+	fs = FileStorage(cam1calibFilename, FileStorage::READ);
 	Mat cameraMatrix1, distCoeffs1;
 	fs["camera_matrix"] >> cameraMatrix1;
 	fs["distortion_coefficients"] >> distCoeffs1;
@@ -200,21 +230,26 @@ int main(int, char**) {
 
 			if (cam0marker.x != 0 && cam1marker.x != 0) {
 				// Do triangulation to get ball positon
-				Point3f newBallPosition = doTriangulation(proj0, proj1, cam0marker, cam1marker);
+				Point3f pos = doTriangulation(proj0, proj1, cam0marker, cam1marker) + ballOffset;
+
+				cout << pos.z << endl;
 
 				// If ball is behind z-Coordinate of goal line:
 				// -> its a goal, if x and y coordinates are inside goal measurements
 				// -> its a miss, else
-				if (newBallPosition.z > -10) {
-					if (newBallPosition.x > -5 && newBallPosition.x < 25
-						&& newBallPosition.y > -7 && newBallPosition.y < 15) {
-							cout << "GOAAAAAAL: " << newBallPosition.x << " : " << newBallPosition.y << endl;
-					} else {
-						cout << "MISS: " << newBallPosition.x << " : " << newBallPosition.y << endl;
+				if (pos.z > goalConfig.line_z_coord) {
+					goalCounter++;
+					if (goalCounter >= goalConfig.sequence_count) {
+						if (pos.x >= 0 && pos.x <= goalConfig.width
+							&& pos.y <= goalConfig.height) {
+								cout << "GOAAAAAAL: " << pos.x << " : " << pos.y << endl;
+						} else {
+							cout << "MISS: " << pos.x << " : " << pos.y << endl;
+						}
+						goalDetectionMode = false;
 					}
-					goalDetectionMode = false;
 				} else {
-					lastBallPosition = newBallPosition;
+					goalCounter = 0;
 				}
 			}
 		}
@@ -256,7 +291,8 @@ int main(int, char**) {
 			// Pressing 'G' starts goal-detection
 		  	if (!goalDetectionMode && calibrated0 && calibrated1) {
 			  	goalDetectionMode = true;
-			  	lastBallPosition.z = -100;
+				goalCounter = 0;
+				detector.clearBackgroundModel();
 			  	cout << "Goal detection mode started" << endl;
 		  	}
 	  	} else if (key > 0) {
