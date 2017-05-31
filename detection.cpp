@@ -1,66 +1,57 @@
 #include "detection.h"
 
-Detection::Detection(int keypointSizeThreshold) {
-	this->keypointSizeThreshold = keypointSizeThreshold;
-
-	// create Background Subtractor objects
-	//pMOG2 = bgsegm::createBackgroundSubtractorMOG();
+BallDetector::BallDetector(int keypointNoiseThreshold) {
+	// Create Background Subtractor object
 	pMOG2 = createBackgroundSubtractorMOG2();
 
-	// init blob detector
-	// Setup SimpleBlobDetector parameters.
+	// Init blob detector with some parameters
 	SimpleBlobDetector::Params params;
 
-	// Fitler white blobs
+	// Filter white blobs
 	params.filterByColor = 1;
 	params.blobColor = 255;
 
 	// Filter by Area
 	params.filterByArea = true;
-	params.minArea = 10;
+	params.minArea = keypointNoiseThreshold;
 
 	detector = SimpleBlobDetector::create(params);
 }
 
-/**
-* Detect ball in camera frame and write center position to center.
-**/
-void Detection::detectionStep(Mat& frame, Point2f& center) {
-	center.x = 0;
-	center.y = 0;
+// Detect ball in camera frame and write position to corresponding argument
+void BallDetector::detectionStep(Mat& frame, Point2f& position) {
+	// By default return x,y = 0 if ball is not detected
+	position.x = 0;
+	position.y = 0;
 
-	// smooth it
-	GaussianBlur(frame, frame, Size(5, 5), 2, 2 );
+	Mat hFrame;
 
-	//update the background model
-	pMOG2->apply(frame, fgMaskMOG2);
+	// Smooth image (to avoid noise)
+	GaussianBlur(frame, hFrame, Size(5, 5), 2, 2 );
 
-	// smooth it
-	GaussianBlur( fgMaskMOG2, fgMaskMOG2, Size(5, 5), 2, 2 );
+	// Update the background model and to background subtraction
+	// Resulting mask will be written to fgMaskMOG2
+	pMOG2->apply(hFrame, fgMaskMOG2);
 
-	// Detect blobs in fgMaskMOG2
+	// Smooth mask (to avoid noise)
+	GaussianBlur(fgMaskMOG2, fgMaskMOG2, Size(5, 5), 2, 2);
+
+	// Detect blobs (regions) in fgMaskMOG2
 	std::vector<KeyPoint> keypoints;
 	detector->detect(fgMaskMOG2, keypoints);
 
-	float m_size = 0;
-	int biggest_kp = -1;
-	int countOfKPsBiggerThanThreshold = 0;
-	for (int i = 0; i < keypoints.size(); i++) {
-		// Only work with keypoints of certain size (remove noise)
-		if (keypoints[i].size > keypointSizeThreshold) {
-			countOfKPsBiggerThanThreshold++;
-			if (m_size < keypoints[i].size) {
-				biggest_kp = i;
-				m_size = keypoints[i].size;
-			}
-		}
-	}
-	if (biggest_kp > -1) {
-		int size_int = (int)keypoints[biggest_kp].size;
-		circle(frame, keypoints[biggest_kp].pt ,size_int, Scalar(0,0,255), 3, 8, 0);
-		center.x = keypoints[biggest_kp].pt.x;
-		center.y = keypoints[biggest_kp].pt.y;
+	// TODO: Find out which keypoint actually corresponds to the ball
+	// Ideally we only have one keypoint and there is nothing to do here
+	int kpBallId = 0;
+	if (keypoints.size() < 1) { kpBallId = -1; }
+
+	if (kpBallId > -1) {
+		// Mark keypoint in image and write position to corresponding argument
+		int size_int = (int)keypoints[kpBallId].size;
+		circle(frame, keypoints[kpBallId].pt ,size_int, Scalar(0,0,255), 3, 8, 0);
+		position.x = keypoints[kpBallId].pt.x;
+		position.y = keypoints[kpBallId].pt.y;
 	}
 
-	putText(frame, "KPs : " + SSTR(int(countOfKPsBiggerThanThreshold)), Point(100,50), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(50,170,50), 2);
+	putText(frame, "KPs : " + SSTR(int(keypoints.size())), Point(100,50), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(50,170,50), 2);
 }

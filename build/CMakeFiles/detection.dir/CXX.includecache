@@ -11,26 +11,10 @@ detection.h
 /home/mbarde/projects/twocams/detection.h
 
 /home/mbarde/projects/twocams/detection.h
-opencv2/imgcodecs.hpp
-/home/mbarde/projects/twocams/opencv2/imgcodecs.hpp
-opencv2/imgproc.hpp
-/home/mbarde/projects/twocams/opencv2/imgproc.hpp
-opencv2/videoio.hpp
-/home/mbarde/projects/twocams/opencv2/videoio.hpp
 opencv2/bgsegm.hpp
 /home/mbarde/projects/twocams/opencv2/bgsegm.hpp
 opencv2/features2d.hpp
 /home/mbarde/projects/twocams/opencv2/features2d.hpp
-opencv2/highgui.hpp
--
-opencv2/video.hpp
--
-stdio.h
--
-iostream
--
-sstream
--
 
 /usr/local/include/opencv/cxcore.h
 opencv2/core/core_c.h
