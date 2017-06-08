@@ -1,5 +1,5 @@
 #include "opencv2/opencv.hpp"
-#include "detection.h"
+#include "ballDetector.h"
 
 using namespace cv;
 using namespace std;
@@ -86,6 +86,31 @@ bool doExtrinsicCalibration(	Size boardSize, int chessBoardFlags, vector<Point3f
   		return true;
   	}
   	return false;
+}
+
+// Check points resulting from triangulation against real object points.
+// Using chessboard corners for comparison.
+// Prints deviation for each point and average deviation.
+void runTriangulationDeviationTest(	Mat frame0, Mat frame1, Mat projectionMatrix0, Mat projectionMatrix1,
+												Size boardSize, int chessBoardFlags, vector<Point3f> objectPoints) {
+	vector<Point2f> foundBoardCorners0, foundBoardCorners1;
+	bool found = findChessboardCorners(frame0, boardSize, foundBoardCorners0, chessBoardFlags);
+	if (!found) return;
+	found = findChessboardCorners(frame1, boardSize, foundBoardCorners1, chessBoardFlags);
+	if (!found) return;
+	if (foundBoardCorners0.size() != foundBoardCorners1.size()) return;
+
+	Point3f point;
+	float dif;
+	float avgDif = 0;
+	for (int i = 0; i < foundBoardCorners0.size(); i++) {
+		point = doTriangulation(projectionMatrix0, projectionMatrix1, foundBoardCorners0[i], foundBoardCorners1[i]);
+		dif = norm( (objectPoints[i]/10) - point );
+
+		cout << "Point " << i << ": Deviation: " << dif << "cm" << endl;
+		avgDif += dif;
+	}
+	cout << "Average deviation: " << avgDif/foundBoardCorners0.size() << "cm" << endl;
 }
 
 struct GoalConfig {
@@ -295,7 +320,9 @@ int main(int, char**) {
 				detector.clearBackgroundModel();
 			  	cout << "Goal detection mode started" << endl;
 		  	}
-	  	} else if (key > 0) {
+	  	} else if (key == 't') {
+			runTriangulationDeviationTest(frame0, frame1, proj0, proj1, boardSize, chessBoardFlags, objectPoints);
+		} else if (key > 0) {
 			cout << key << endl;
   			break;
       }
