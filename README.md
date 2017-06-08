@@ -19,9 +19,9 @@ Required configurations files:
 How to use:
 
 1. Start program
-2. Place chessboard as your "goal" (both cameras must see it clompletely)
+2. Place chessboard as your "goal" (both cameras must see it completely)
 3. Press SPACE
-4. If chessboard has not been detected properly go to 2.
+4. If chessboard has not been detected properly there will be an error message and you have to try it a again (go to 2.)
 5. Extrinsic calibration has been sucessfully done, projection matrices of cameras have been calculated
 
 Now you have several options:
