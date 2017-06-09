@@ -4,6 +4,14 @@
 using namespace cv;
 using namespace std;
 
+void printInstructions() {
+	cout << endl;
+	cout << "> Click with your mouse into the images to set markers. Then press SPACE to triangulate." << endl;
+	cout << "> Press T to run triangulation deviation test." << endl;
+	cout << "> Press G to start automatic goal detection." << endl;
+	cout << endl;
+}
+
 // Calculates corner positions of calibration board depending on the squareSize
 static void calcBoardCornerPositions(Size boardSize, float squareSize, vector<Point3f>& corners) {
     corners.clear();
@@ -242,8 +250,7 @@ int main(int, char**) {
 
       if (start && calibrated0 && calibrated1) {
         	cout << "Extrinsic calibration done!" << endl;
-       	cout << "Click with your mouse into the images to set markers. Then press SPACE to triangulate." << endl;
-			cout << "Press SPACE to start goal detection." << endl;
+			printInstructions();
       }
 
       start = false;
@@ -271,6 +278,7 @@ int main(int, char**) {
 						} else {
 							cout << "MISS: " << pos.x << " : " << pos.y << endl;
 						}
+						printInstructions();
 						goalDetectionMode = false;
 					}
 				} else {
@@ -310,6 +318,7 @@ int main(int, char**) {
 				  	cout << "Start triangulation" << endl;
 	            Point3f point = doTriangulation(proj0, proj1, cam0marker, cam1marker);
 					cout << point << endl;
+					printInstructions();
           	}
         	}
 	  	} else if (key == 'g') {
@@ -319,9 +328,11 @@ int main(int, char**) {
 				goalCounter = 0;
 				detector.clearBackgroundModel();
 			  	cout << "Goal detection mode started" << endl;
+				cout << "(z-Coordinate of the ball will be printed out if detected)" << endl;
 		  	}
 	  	} else if (key == 't') {
 			runTriangulationDeviationTest(frame0, frame1, proj0, proj1, boardSize, chessBoardFlags, objectPoints);
+			printInstructions();
 		} else if (key > 0) {
 			cout << key << endl;
   			break;
